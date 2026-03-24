@@ -30,7 +30,7 @@ def get_news_for_team(team_name: str, n: int =5):
             "published": item.find("pubDate").text if item.find("pubDate") else None,
             "source": item.find("source").text if item.find("source") else None,
         })
-        if len(results) == n:  # zatrzymaj gdy masz n wyników
+        if len(results) == n: 
             break
     return results
 def get_news_for_match(home_team: str, away_team: str, n: int = 5):
@@ -40,6 +40,6 @@ def get_news_for_match(home_team: str, away_team: str, n: int = 5):
 
 if __name__ == "__main__":
     teams = get_teams_from_csv("../data/Premier_League/PremierLeague_Match_Data_Ready_For_ML.csv")
-    print(f"Dostepne druzyny {teams}")
+    print(f"Available teams {teams}")
     df = get_news_for_match(teams[0],teams[1])
     print(df.to_string())
