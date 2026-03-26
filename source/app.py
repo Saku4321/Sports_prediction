@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from datetime import date
 from scraper import get_news_for_team, get_teams_from_csv
 from llm_claude_morale import get_morale_score
 from predict import predict_match
@@ -24,19 +23,23 @@ teams=get_teams_from_csv(DATA_PATH)
 
 teams_cs= get_teams_from_csv(DATA_PATH_CS)
 
+if 'result' not in st.session_state:
+    st.session_state.result = None
+    st.session_state.home_morale = None
+    st.session_state.away_morale = None
+    st.session_state.home_news = []
+    st.session_state.away_news = []
+
 tab1, tab2 = st.tabs(["⚽ Prediction", "📈 Team History"])
+
 with tab1:
     col1,col2 = st.columns(2)
 
     with col1:
-
         home_team = st.selectbox("Home Team", teams_cs)
 
     with col2:
         away_team = st.selectbox("Away Team", teams_cs, index = 1)
-
-    if 'result' not in st.session_state:
-        st.session_state.result = None
 
     if st.button("⚡ Analyze match", use_container_width= True):
         if home_team == away_team:
@@ -51,18 +54,28 @@ with tab1:
 
                 home_morale = get_morale_score(home_team, home_headlines)
                 away_morale = get_morale_score(away_team, away_headlines)
+                st.session_state.home_morale = home_morale
+                st.session_state.away_morale = away_morale
+                st.session_state.home_news = home_news
+                st.session_state.away_news = away_news
             with st.spinner("Calculating prediction..."):
                 st.session_state.result = predict_match(
                     home_team,away_team,
                     home_morale["morale_score"],
                     away_morale["morale_score"]
                 )
-    if st.session_state.result:
+    if st.session_state.result and st.session_state.home_morale and st.session_state.away_morale and st.session_state.home_news and st.session_state.away_news:
         result = st.session_state.result
-        st.subheader("📊 Result Probability")
+        home_morale = st.session_state.home_morale
+        away_morale = st.session_state.away_morale
+        home_news = st.session_state.home_news
+        away_news = st.session_state.away_news
+
         home_pct = result["home_win"]
         draw_pct = result["draw"]
         away_pct = result["away_win"]
+
+        st.subheader("📊 Result Probability")
         st.markdown(f"""
             <div style="margin: 10px 0;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
@@ -81,10 +94,10 @@ with tab1:
         st.subheader("🧠 Morale Analysis")
         m1, m2 = st.columns(2)
         with m1:
-            st.metric(f"{home_team} (Home)", f"{home_morale['morale_score']}/10")
+            st.metric(f"{result['home_team']} (Home)", f"{home_morale['morale_score']}/10")
             st.info(home_morale["reasoning"])
         with m2:
-            st.metric(f"{away_team} (Away)", f"{away_morale['morale_score']}/10")
+            st.metric(f"{result['away_team']} (Away)", f"{away_morale['morale_score']}/10")
             st.info(away_morale["reasoning"])
 
         st.subheader("📰 News Headlines")
@@ -102,9 +115,9 @@ with tab1:
 with tab2:
     t2_col1, t2_col2 = st.columns(2)
     with t2_col1:
-        home_team_history = st.selectbox("Home Team", teams, key="history_home")
+        home_team_history = st.selectbox("Home Team", teams_cs, key="history_home")
     with t2_col2:
-        away_team_history = st.selectbox("Away Team", teams, key="history_away", index=1)
+        away_team_history = st.selectbox("Away Team", teams_cs, key="history_away", index=1)
 
     st.subheader("📈 ELO History")
     df['Date']=pd.to_datetime(df['Date'])
