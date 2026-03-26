@@ -2,18 +2,28 @@ import joblib
 import pandas as pd
 import numpy as np
 import json
+import os
 
-def load_model(model_path: str= "../models/xgb_model.pkl"):
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def load_model(model_path: str= None):
+    if model_path is None:
+        model_path = os.path.join(BASE_DIR, "models","xgb_model.pkl")
     return joblib.load(model_path)
 
-def get_current_elo(home_team: str, away_team: str, elo_path: str = "../data/Premier_League/elo_ratings.json") -> tuple:
+def get_current_elo(home_team: str, away_team: str, elo_path: str = None) -> tuple:
+    if elo_path is None:
+        elo_path = os.path.join(BASE_DIR, "data","Premier_League","elo_ratings.json")
     with open(elo_path) as f:
         elo_dict = json.load(f)
     home_elo = elo_dict.get(home_team, 1350)
     away_elo = elo_dict.get(away_team, 1350)
     return home_elo, away_elo
 
-def get_match_features(home_team: str, away_team: str, data_path: str = "../data/Premier_League/PremierLeague_Match_Data_Ready_For_ML.csv") -> pd.DataFrame:
+def get_match_features(home_team: str, away_team: str, data_path: str = None) -> pd.DataFrame:
+    if data_path is None:
+        data_path = os.path.join(BASE_DIR, "data","Premier_League", "PremierLeague_Match_Data_Ready_For_ML.csv")
     df = pd.read_csv(data_path)
     home_matches = df[df["HomeTeam"] == home_team].tail(1)
     away_matches = df[df["AwayTeam"] == away_team].tail(1)
