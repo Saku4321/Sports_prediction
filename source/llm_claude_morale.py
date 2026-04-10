@@ -1,8 +1,16 @@
 import anthropic
 from dotenv import load_dotenv
 import os
+import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 load_dotenv()
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEBERTA_PATH = os.path.join(BASE_DIR,"models", "deberta-morale-final")
+LABEL_MAX = 10.0
+_deberta_model = None
+_deberta_tokenizer = None
+
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
 def get_morale_score(team_name:str,headlines:list[str]) ->dict:
@@ -37,6 +45,28 @@ def get_morale_score(team_name:str,headlines:list[str]) ->dict:
         "morale_score": score,
         "reasoning": reasoning
     }
+
+
+def get_morale_score_deberta(team_name:str, headlines: list[str]) -> dict:
+    global _deberta_model, _deberta_tokenizer
+    if _deberta_model is None:
+        _deberta_tokenizer = AutoTokenizer.from_pretrained(DEBERTA_PATH)
+        _deberta_model = AutoModelForSequenceClassification.from_pretrained(DEBERTA_PATH)
+        _deberta_model.eval()
+
+    text = " .".join(headlines)
+    inputs = _deberta_tokenizer(text, truncation = True, padding="max_length", max_length=256, return_tensors="pt")
+    with torch.no_grad():
+        score_normalized = _deberta_model(**inputs).logits.squeeze().item()
+
+    score = round(max(1, min(10, score_normalized * LABEL_MAX)))
+
+    return {
+        "team": team_name,
+        "morale_score": score,
+        "reasoning": f"Score predicted by fine-tuned DeBERTa model based on {len(headlines)} recent headlines"
+    }
+
 
 if __name__ == "__main__":
     from scraper import get_news_for_team, get_teams_from_csv

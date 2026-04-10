@@ -2,9 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from scraper import get_news_for_team, get_teams_from_csv
-from llm_claude_morale import get_morale_score
+from llm_claude_morale import get_morale_score,get_morale_score_deberta
 from predict import predict_match
 import flag
+import subprocess
 
 st.set_page_config(page_title="Sports Prediction App", page_icon="⚽", layout="wide")
 st.title("Football Match Predictor")
@@ -32,6 +33,46 @@ if 'result' not in st.session_state:
     st.session_state.home_news = []
     st.session_state.away_news = []
 
+if 'data_initialized' not in st.session_state:
+    notebooks = [
+        ("📊 Processing data...", "notebooks/01_eda.ipynb"),
+        ("📈 Updating visualizations...", "notebooks/visualization_eda.ipynb"),
+        ("🤖 Retraining XGBoost...", "notebooks/machine_learning.ipynb"),
+    ]
+    for msg, path in notebooks:
+        with st.spinner(msg):
+            result = subprocess.run(
+                ["jupyter", "nbconvert", "--to", "notebook", "--execute", "--inplace", path],
+                capture_output=True,
+                text=True
+            )
+    st.cache_data.clear()
+    st.session_state.data_initialized = True
+
+with st.sidebar:
+    st.subheader("Data")
+    if st.button("🔄 Update Data", use_container_width=True):
+        notebooks = [
+            ("📊 Processing data...", "notebooks/01_eda.ipynb"),
+            ("📈 Updating visualizations...", "notebooks/visualization_eda.ipynb"),
+            ("🤖 Retraining XGBoost...", "notebooks/machine_learning.ipynb"),
+        ]
+        success = True
+        for msg, path in notebooks:
+            with st.spinner(msg):
+                result = subprocess.run(
+                    ["jupyter", "nbconvert", "--to", "notebook", "--execute", "--inplace", path],
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode !=0:
+                    st.error(f"Pipeline failed:\n{result.stderr}")
+                    success = False
+                    break
+        if success:
+            st.cache_data.clear()
+            st.success("Everything updated successfully")
+
 tab1, tab2 = st.tabs(["⚽ Prediction", "📈 Team History"])
 
 with tab1:
@@ -44,7 +85,11 @@ with tab1:
 
     with col2:
         away_team = st.selectbox("Away Team", teams_cs, index = 1)
-
+    morale_model = st.radio(
+        "Morale model",
+        ["Claude API", "DeBERTa (local)"],
+        horizontal=True
+    )
     if st.button("⚡ Analyze match", use_container_width= True):
         if home_team == away_team:
             st.error("Select two different teams")
@@ -56,8 +101,8 @@ with tab1:
                 home_headlines = [f"{n['title']} ({n['published']})" for n in home_news]
                 away_headlines = [f"{n['title']} ({n['published']})" for n in away_news]
 
-                home_morale = get_morale_score(home_team, home_headlines)
-                away_morale = get_morale_score(away_team, away_headlines)
+                home_morale = get_morale_score(home_team, home_headlines) if morale_model == "Claude API" else get_morale_score_deberta(home_team, home_headlines)
+                away_morale = get_morale_score(away_team, away_headlines) if morale_model == "Claude API" else get_morale_score_deberta(away_team,away_headlines)
                 st.session_state.home_morale = home_morale
                 st.session_state.away_morale = away_morale
                 st.session_state.home_news = home_news
