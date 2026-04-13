@@ -22,11 +22,11 @@ The app predicts match results (home win / draw / away win) using:
 ```
 ├── data/
 │   └── Premier_League/
-│       ├── Not_merged/          # Raw CSV files per season (football-data.co.uk)
+│       ├── raw/          # Raw CSV files per season (football-data.co.uk)
 │       ├── PremierLeague_WszystkieSezony.csv
 │       └── PremierLeague_Match_Data_Ready_For_ML.csv
 ├── models/
-│   ├── xgb_model.pkl
+│   ├── xgb_Premier_League.pkl
 │   └── deberta-morale-final/    # Fine-tuned DeBERTa (not in repo, download separately)
 ├── notebooks/
 │   ├── 01_eda.ipynb             # Data pipeline & feature engineering

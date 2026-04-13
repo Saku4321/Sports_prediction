@@ -5,11 +5,11 @@ import json
 import os
 
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def load_model(model_path: str= None):
     if model_path is None:
-        model_path = os.path.join(BASE_DIR, "models","xgb_model.pkl")
+        model_path = os.path.join(BASE_DIR, "models","xgb_Premier_League.pkl")
     return joblib.load(model_path)
 
 def get_current_elo(home_team: str, away_team: str, elo_path: str = None) -> tuple:

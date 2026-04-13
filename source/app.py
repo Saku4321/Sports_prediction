@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from scraper import get_news_for_team, get_teams_from_csv
-from llm_claude_morale import get_morale_score,get_morale_score_deberta
-from predict import predict_match
+from data_tools.scraper import get_news_for_team, get_teams_from_csv
+from prediction.llm_claude_morale import get_morale_score, get_morale_score_deberta
+from prediction.predict import predict_match
 import flag
 import subprocess
 
@@ -14,7 +14,7 @@ st.caption("AI-powered match predictions for the Premier League.")
 
 DATA_PATH = "data/Premier_League/PremierLeague_Match_Data_Ready_For_ML.csv"
 
-DATA_PATH_CS="data/Premier_League/Not_Merged/E0_25_26_LIVE.csv"
+DATA_PATH_CS="data/Premier_League/raw/E0_25_26_LIVE.csv"
 
 england_flag = flag.flag("GBENG")
 @st.cache_data

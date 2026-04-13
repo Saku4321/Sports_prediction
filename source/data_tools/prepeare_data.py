@@ -2,7 +2,7 @@ import json
 import pandas as pd
 import os
 from sklearn.model_selection import train_test_split
-from predict import BASE_DIR
+from prediction.predict import BASE_DIR
 
 def prepeare_data(
     input_path: str = None,
@@ -36,8 +36,7 @@ def prepeare_data(
     train_df.to_csv(train_path, index=False)
     val_df.to_csv(val_path, index=False)
 
-    print(f"\n Train: {len(train_df)} examples -> {train_path}")
-    print(f"\n Val: {len(val_df)} examples -> {val_path}")
+
 
 
 if __name__ == "__main__":

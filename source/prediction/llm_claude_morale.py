@@ -5,7 +5,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 load_dotenv()
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEBERTA_PATH = os.path.join(BASE_DIR,"models", "deberta-morale-final")
 LABEL_MAX = 10.0
 _deberta_model = None
@@ -69,7 +69,7 @@ def get_morale_score_deberta(team_name:str, headlines: list[str]) -> dict:
 
 
 if __name__ == "__main__":
-    from scraper import get_news_for_team, get_teams_from_csv
+    from data_tools.scraper import get_news_for_team, get_teams_from_csv
     teams = get_teams_from_csv("../data/Premier_League/PremierLeague_Match_Data_Ready_For_ML.csv")
 
     team = "Arsenal"

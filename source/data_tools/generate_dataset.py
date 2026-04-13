@@ -5,15 +5,15 @@ import anthropic
 import random
 from dotenv import load_dotenv
 import os
-from scraper import get_teams_from_csv
-from predict import BASE_DIR
+from data_tools.scraper import get_teams_from_csv
+from prediction.predict import BASE_DIR
 from collections import Counter
 import time
 
 load_dotenv()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-DATA_PATH_CS = os.path.join(BASE_DIR, "data", "Premier_League", "Not_Merged", "E0_25_26_LIVE.csv")
+DATA_PATH_CS = os.path.join(BASE_DIR, "data", "Premier_League", "raw", "E0_25_26_LIVE.csv")
 TEAMS = get_teams_from_csv(DATA_PATH_CS)
 
 def parse_scenarios(md_path: str) -> list[dict]:
