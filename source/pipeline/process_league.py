@@ -7,7 +7,8 @@ from config import BASE_DIR, CORE_COLUMNS, LEAGUES
 
 def load_raw_data(league: str) -> pd.DataFrame:
     folder = os.path.join(BASE_DIR, "data", league, "raw")
-    files = glob.glob(os.path.join(folder, "*.csv"))
+    code = LEAGUES[league]["code"]
+    files = glob.glob(os.path.join(folder, f"{code}*.csv"))
 
     all_matches = []
 
@@ -285,15 +286,15 @@ def impute_missing_features(df: pd.DataFrame) -> pd.DataFrame:
     for col in cols_h2h_goals:
         df[col] = df[col].fillna(0.0)
 
-    current_match_stats = [
+    cols_to_drop = [col for col in df.columns if 'Away_H2H' in col]
+    cols_to_drop += [col for col in [
         'FTHG', 'FTAG', 'HTHG', 'HTAG', 'HTR', 'FTR',
         'HS', 'AS', 'HST', 'AST',
         'HF', 'AF', 'HC', 'AC',
         'HY', 'AY', 'HR', 'AR',
-        'HomePoints', 'AwayPoints'
-    ]
-
-    cols_to_drop = [col for col in current_match_stats if col in df.columns]
+        'HomePoints', 'AwayPoints',
+        'Div', 'Referee'
+    ] if col in df.columns]
     df = df.drop(columns=cols_to_drop)
 
     return df
