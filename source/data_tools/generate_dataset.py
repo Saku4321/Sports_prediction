@@ -6,15 +6,21 @@ import random
 from dotenv import load_dotenv
 import os
 from data_tools.scraper import get_teams_from_csv
-from prediction.predict import BASE_DIR
+from config import BASE_DIR, LEAGUES
 from collections import Counter
 import time
 
 load_dotenv()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-DATA_PATH_CS = os.path.join(BASE_DIR, "data", "Premier_League", "raw", "E0_25_26_LIVE.csv")
-TEAMS = get_teams_from_csv(DATA_PATH_CS)
+def load_all_teams() -> list[str]:
+    teams =[]
+    for league, cfg in LEAGUES.items():
+        path = os.path.join(BASE_DIR, "data", league, "raw", f"{cfg['code']}_LIVE.csv")
+        teams.extend(get_teams_from_csv(path))
+    return sorted(set(teams))
+
+TEAMS = load_all_teams()
 
 def parse_scenarios(md_path: str) -> list[dict]:
     with open(md_path, encoding="utf-8") as f:
@@ -44,33 +50,35 @@ def generate_example(scenario: dict, team: str, max_retries: int = 2) -> dict | 
     example_headlines = "\n".join(f'- "{h}"' for h in scenario["example_headlines"])
 
     prompt = textwrap.dedent(f"""\
-You are a football data labeler generating training data for a morale prediction model.
+     You are a football data labeler generating training data for a morale prediction model.
 
-Scenario: {scenario['name']}
-Team: {team}
+     Scenario: {scenario['name']}
+     Team: {team}
 
-Here are example headlines showing the correct style for this scenario:
-{example_headlines}
+     Here are example headlines showing the correct style for this scenario:
+     {example_headlines}
 
-Generate 5 NEW and DIFFERENT headlines about {team} that reflect this scenario.
-Headlines must look like real BBC Sport, Sky Sports or The Guardian headlines.
-Do NOT copy the example headlines - generate original ones.
-Use generic terms instead of specific player names to avoid factual errors.
-For example: "key forward", "first-choice midfielder", "starting goalkeeper".
-Only use player names if you are 100% sure they play that position for {team}.
-Pick a score randomly within the allowed range - do not always choose the minimum or maximum.
-    
-Then assign a morale score between {morale_min} and {morale_max} out of 10.
+     Generate 5 NEW and DIFFERENT headlines about {team} that reflect this scenario.
+     Write all headlines in English, regardless of the team's country or league.
+     Headlines must look like real English-language football journalism
+     (e.g. BBC Sport, ESPN, The Guardian, Sky Sports, Goal.com).
+     Do NOT copy the example headlines - generate original ones.
+     Use generic terms instead of specific player and manager names to avoid factual errors.
+     For example: "key forward", "first-choice midfielder", "starting goalkeeper", "the manager".
+     Avoid club nicknames - refer to the team as "{team}" or with neutral words like "the side".
+     Pick a score randomly within the allowed range - do not always choose the minimum or maximum.
 
-Respond in this EXACT format with no other text:
-HEADLINES:
-- [headline 1]
-- [headline 2]
-- [headline 3]
-- [headline 4]
-- [headline 5]
-SCORE: [single integer between {morale_min} and {morale_max}]\
-""").strip()
+     Then assign a morale score between {morale_min} and {morale_max} out of 10.
+
+     Respond in this EXACT format with no other text:
+     HEADLINES:
+     - [headline 1]
+     - [headline 2]
+     - [headline 3]
+     - [headline 4]
+     - [headline 5]
+     SCORE: [single integer between {morale_min} and {morale_max}]\
+     """).strip()
     for attempt in range(max_retries):
         try:
             message = client.messages.create(
@@ -108,9 +116,9 @@ SCORE: [single integer between {morale_min} and {morale_max}]\
 
     return None
 
-def generate_dataset(target: int = 1000):
+def generate_dataset(target: int = 5000):
     output_path = os.path.join(BASE_DIR, "data", "morale_dataset.json")
-    md_path = os.path.join(BASE_DIR, "data", "50_premier_league_scenarios.md")
+    md_path = os.path.join(BASE_DIR, "data", "match_scenarios.md")
     scenarios = parse_scenarios(md_path)
 
     print(f"Found {len(scenarios)} scenarios.")
@@ -158,5 +166,6 @@ def generate_dataset(target: int = 1000):
     print(f"\nDone! Generated {len(dataset)} examples, with {errors} errors.")
     print(f"Saved to {output_path}")
 
+
 if __name__ == "__main__":
-    generate_dataset(target=1000)
+    generate_dataset(target=11000)

@@ -3,3 +3,6 @@ venv/
 __pycache__/
 *.pyc
 models/deberta-morale-final/
+.idea/easycode/
+.idea/easycode.ignore
+*.bak

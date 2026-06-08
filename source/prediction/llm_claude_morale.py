@@ -5,7 +5,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 load_dotenv()
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import BASE_DIR
 DEBERTA_PATH = os.path.join(BASE_DIR,"models", "deberta-morale-final")
 LABEL_MAX = 10.0
 _deberta_model = None

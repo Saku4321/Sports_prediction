@@ -2,7 +2,7 @@ import json
 import pandas as pd
 import os
 from sklearn.model_selection import train_test_split
-from prediction.predict import BASE_DIR
+from config import BASE_DIR
 
 def prepeare_data(
     input_path: str = None,
@@ -28,13 +28,17 @@ def prepeare_data(
 
     df = pd.DataFrame(rows)
 
-    train_df, val_df = train_test_split(df, test_size=0.2, random_state=42)
+    train_df, val_df = train_test_split(df, test_size=0.2, random_state=42, stratify= df["label"])
 
     train_path = os.path.join(output_dir, "train.csv")
     val_path = os.path.join(output_dir, "val.csv")
 
     train_df.to_csv(train_path, index=False)
     val_df.to_csv(val_path, index=False)
+
+    print(f"Train: {len(train_df)}")
+    print(f"Val: {len(val_df)}")
+    print(df["label"].value_counts().sort_index())
 
 
 

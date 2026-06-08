@@ -1,8 +1,9 @@
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from config import TEAM_SEARCH_NAMES
 
-EXCLUDE_KEYWORDS = ["women", "woman", "ladies", "u21", "u23", "academy", "reserves"]
+EXCLUDE_KEYWORDS = ["women", "woman", "ladies", "u21", "u23", "academy", "reserves", "rugby"]
 
 
 def get_teams_from_csv(csv_path: str) -> list[str]:
@@ -11,7 +12,8 @@ def get_teams_from_csv(csv_path: str) -> list[str]:
     return sorted(teams.tolist())
 
 def get_news_for_team(team_name: str, n: int =5):
-    url = f"https://news.google.com/rss/search?q={team_name}+men+football&hl=en&gl=GB&ceid=GB:en"
+    search_name = TEAM_SEARCH_NAMES.get(team_name, team_name)
+    url = f"https://news.google.com/rss/search?q={search_name}+football&hl=en&gl=GB&ceid=GB:en"
     response = requests.get(url, timeout=10)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, features="xml")
