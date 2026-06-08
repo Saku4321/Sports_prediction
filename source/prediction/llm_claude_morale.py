@@ -54,7 +54,7 @@ def get_morale_score_deberta(team_name:str, headlines: list[str]) -> dict:
         _deberta_model = AutoModelForSequenceClassification.from_pretrained(DEBERTA_PATH)
         _deberta_model.eval()
 
-    text = " .".join(headlines)
+    text = f"{team_name}: " + " . ".join(headlines)
     inputs = _deberta_tokenizer(text, truncation = True, padding="max_length", max_length=256, return_tensors="pt")
     with torch.no_grad():
         score_normalized = _deberta_model(**inputs).logits.squeeze().item()

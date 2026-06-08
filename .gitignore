@@ -6,3 +6,6 @@ models/deberta-morale-final/
 .idea/easycode/
 .idea/easycode.ignore
 *.bak
+.venv/
+.venv-train/
+notebooks/deberta-morale-*/
